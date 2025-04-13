@@ -1,0 +1,8 @@
+Parameters:
+  VpcId: vpc-4168ef39
+  SubnetIds: subnet-2c372755
+  ResourcePrefix: alchembook-infra-workspace
+  KeyPair: 4dev
+  ASGMinCapacity: 0
+  ASGMaxCapacity: 3
+  ASGDesireedCapacity: 0
