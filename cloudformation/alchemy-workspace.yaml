@@ -93,19 +93,15 @@ Resources:
               cat /tmp/bashrc-completion >> /home/ubuntu/.bashrc
               rm -rf /tmp/bashrc-completion
 
-              # Add Docker's official GPG key:
-              sudo apt-get update
-              sudo apt-get install ca-certificates curl
-              sudo install -m 0755 -d /etc/apt/keyrings
-              sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-              sudo chmod a+r /etc/apt/keyrings/docker.asc
+              aws s3 cp s3://${S3Bucket}/docker-config.sh /tmp/docker-config.sh
+              chmod +x /tmp/docker-config.sh
+              /tmp/docker-config.sh
+              rm -rf /tmp/docker-config.sh
 
-              # Add the repository to Apt sources:
-              echo \
-                "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-                $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
-                sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-              sudo apt-get update
+              aws s3 cp s3://${S3Bucket}/node-config.sh /tmp/node-config.sh
+              chmod +x /tmp/node-config.sh
+              /tmp/node-config.sh
+              rm -rf /tmp/node-config.sh
             - S3Bucket: !Ref S3Bucket
         KeyName: !Ref KeyPair
         IamInstanceProfile:
