@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Selecione a VPC
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Selecione a Subnet(s) da VPC escolhida
+  ResourcePrefix:
+    Type: String
+    Description: Prefixo para padronizar os nomes dos recursos
+    Default: AlchemBook
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: O nome do Key Pair a ser usado nas inst?ncias EC2
+
+Resources:
+  # Bucket S3
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ResourcePrefix}-bucket
+
+  # IAM Role para inst?ncias
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub ${ResourcePrefix}-InstancePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                Resource: !Sub arn:aws:s3:::${S3Bucket}/*
+        - PolicyName: !Sub ${ResourcePrefix}-InstancePolicy2
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                Resource: '*'
+
+  # Launch Template (Descomentado)
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub ${ResourcePrefix}-LaunchTemplate
+      VersionDescription: v1
+      LaunchTemplateData:
+        InstanceType: t3a.medium
+        ImageId: ami-075686beab831bb7f # Exemplo de AMI p?blica (Ubuntu)
+        UserData: !Base64
+          Fn::Sub:
+            - |
+              #!/bin/bash
+              apt update -y
+              apt install -y s3fs zip unzip
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              ./aws/install
+              mkdir -p /tmp/alchemy
+              chown -R ubuntu:ubuntu /tmp/alchemy
+              echo "${S3Bucket} /tmp/alchemy fuse.s3fs _netdev,allow_other,iam_role=auto,url=https://s3.amazonaws.com 0 0" >> /etc/fstab
+              systemctl daemon-reexec
+              mount -a
+              echo "git_branch() {
+                git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \\(.*\\)/(\\1)/'
+              }
+
+              export PS1=\"\\[\\e]0;\\u@\\h: \\w\\a\\]${debian_chroot:+($debian_chroot)}\\[\\033[01;32m\\]\\u@\\h\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]\\$(git_branch)\\$ \"" >> /home/ubuntu/.bashrc
+            - S3Bucket: !Ref S3Bucket
+        KeyName: !Ref KeyPair
+        IamInstanceProfile:
+          Arn: !GetAtt InstanceProfile.Arn
+
+  # AutoScaling Group (Descomentado)
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref SubnetIds # Passa todas as subnets selecionadas
+      MinSize: 0
+      MaxSize: 3
+      DesiredCapacity: 0
+      MixedInstancesPolicy:
+        InstancesDistribution:
+          OnDemandBaseCapacity: 0
+          OnDemandPercentageAboveBaseCapacity: 0
+          SpotAllocationStrategy: capacity-optimized
+        LaunchTemplate:
+          LaunchTemplateSpecification:
+            LaunchTemplateId: !Ref LaunchTemplate
+            Version: !GetAtt LaunchTemplate.LatestVersionNumber # Refer?ncia para a vers?o mais recente do LaunchTemplate
+
+Outputs:
+  S3BucketName:
+    Description: Nome do S3 criado
+    Value: !Ref S3Bucket
