@@ -154,9 +154,9 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier: !Ref SubnetIds # Passa todas as subnets selecionadas
-      MinSize: !Sub ASGMinCapacity
-      MaxSize: !Sub ASGMaxCapacity
-      DesiredCapacity: !Sub ASGDesireedCapacity
+      MinSize: !Ref ASGMinCapacity
+      MaxSize: !Ref ASGMaxCapacity
+      DesiredCapacity: !Ref ASGDesireedCapacity
       MixedInstancesPolicy:
         InstancesDistribution:
           OnDemandBaseCapacity: 0
