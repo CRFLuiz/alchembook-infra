@@ -12,20 +12,11 @@ Parameters:
     Default: AlchemBook
   KeyPair:
     Type: AWS::EC2::KeyPair::KeyName
-    Description: O nome do Key Pair a ser usado nas instancias EC2
-  ASGMinCapacity:
+    Description: O nome do Key Pair a ser usado nas inst?ncias EC2
+  DesiredASG:
     Type: Number
     Default: 0
-  ASGMaxCapacity:
-    Type: Number
-    Default: 3
-  ASGDesireedCapacity:
-    Type: Number
-    Default: 0
-  DomainName:
-    Type: String
-    Description: Nome do domínio para o qual o DNS será configurado
-    Default: alchembook-workspace.lcdevops.click
+    Description: O numero de instancias que devem estar rodando 
 
 Resources:
   # Bucket S3
@@ -83,68 +74,20 @@ Resources:
           Fn::Sub:
             - |
               #!/bin/bash
-
-              # INITIAL CONFIGURATION
               apt update -y
               apt install -y s3fs zip unzip
-
-              # INSTALL AWS CLI
               curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip awscliv2.zip
               ./aws/install
-              
-              # S3FS CONFIGURATION
-              mkdir -p /tmp/${PROJECT_NAME}
-              chown -R ubuntu:ubuntu /tmp/${PROJECT_NAME}
-              echo "${S3BUCKET} /tmp/${PROJECT_NAME} fuse.s3fs _netdev,allow_other,iam_role=auto,url=https://s3.amazonaws.com 0 0" >> /etc/fstab
+              mkdir -p /tmp/alchemy
+              chown -R ubuntu:ubuntu /tmp/alchemy
+              echo "${S3Bucket} /tmp/alchemy fuse.s3fs _netdev,allow_other,iam_role=auto,url=https://s3.amazonaws.com 0 0" >> /etc/fstab
               systemctl daemon-reexec
               mount -a
-
-              # BASHRC CONFIGURATION
-              cp /tmp/${PROJECT_NAME}/bashrc-completion /tmp/bashrc-completion
-              echo "" >> /tmp/bashrc-completion
-              echo "export S3FS_DIR=/tmp/${PROJECT_NAME}" >> /tmp/bashrc-completion
-              echo "" >> /tmp/bashrc-completion
-              echo "PATH=\$PATH:/home/ubuntu/mylib" >> /tmp/bashrc-completion
+              aws s3 cp s3://${S3Bucket}/bashrc-completion /tmp/bashrc-completion
               cat /tmp/bashrc-completion >> /home/ubuntu/.bashrc
               rm -rf /tmp/bashrc-completion
-
-              # DOCKER CONFIGURATION
-              cp /tmp/${PROJECT_NAME}/docker-config.sh /tmp/docker-config.sh
-              chmod +x /tmp/docker-config.sh
-              /tmp/docker-config.sh
-              rm -rf /tmp/docker-config.sh
-
-              # NODEJS CONFIGURATION
-              cp /tmp/${PROJECT_NAME}/node-config.sh /tmp/node-config.sh
-              chmod +x /tmp/node-config.sh
-              /tmp/node-config.sh
-              rm -rf /tmp/node-config.sh
-              nvm install 20
-              nvm use 20
-              npm install -g yarn
-
-              # ADD SSH KEY
-              cp /tmp/${PROJECT_NAME}/id_ed25519 /home/ubuntu/.ssh/id_ed25519
-              chmod 400 /home/ubuntu/.ssh/id_ed25519
-              chown ubuntu:ubuntu /home/ubuntu/.ssh/id_ed25519
-
-              # COMMANDS LIBRARY CONFIGURATION
-              mkdir -p /home/ubuntu/mylib
-              cp /tmp/${PROJECT_NAME}/gcp /home/ubuntu/mylib/gcp
-              cp /tmp/${PROJECT_NAME}/env_* /home/ubuntu/mylib/.
-              cp /tmp/${PROJECT_NAME}/docker-config /home/ubuntu/mylib/.
-              cp /tmp/${PROJECT_NAME}/my_commands /home/ubuntu/mylib/.
-              chmod -R +x /home/ubuntu/mylib/.
-              chown -R ubuntu:ubuntu /home/ubuntu/mylib/.
-
-              # CONFIGURE DNS TO THE INSTANCE
-              cp /tmp/${PROJECT_NAME}/dns-config.sh /tmp/dns-config.sh
-              chmod +x /tmp/dns-config.sh
-              /tmp/dns-config.sh ${DOMAIN_NAME}
-            - S3BUCKET: !Ref S3Bucket
-            - PROJECT_NAME: !Ref ResourcePrefix
-            - DOMAIN_NAME: !Ref DomainName
+            - S3Bucket: !Ref S3Bucket
         KeyName: !Ref KeyPair
         IamInstanceProfile:
           Arn: !GetAtt InstanceProfile.Arn
@@ -154,9 +97,9 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier: !Ref SubnetIds # Passa todas as subnets selecionadas
-      MinSize: !Sub ASGMinCapacity
-      MaxSize: !Sub ASGMaxCapacity
-      DesiredCapacity: !Sub ASGDesireedCapacity
+      MinSize: 0
+      MaxSize: 3
+      DesiredCapacity: !Ref DesiredASG
       MixedInstancesPolicy:
         InstancesDistribution:
           OnDemandBaseCapacity: 0
