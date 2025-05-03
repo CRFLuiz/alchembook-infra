@@ -134,6 +134,7 @@ Resources:
               cp /tmp/${PROJECT_NAME}/gcp /home/ubuntu/mylib/gcp
               cp /tmp/${PROJECT_NAME}/env_* /home/ubuntu/mylib/.
               cp /tmp/${PROJECT_NAME}/docker-config /home/ubuntu/mylib/.
+              cp /tmp/${PROJECT_NAME}/my_commands /home/ubuntu/mylib/.
               chmod -R +x /home/ubuntu/mylib/.
               chown -R ubuntu:ubuntu /home/ubuntu/mylib/.
 
