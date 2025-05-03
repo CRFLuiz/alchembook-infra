@@ -96,7 +96,7 @@ Resources:
               # S3FS CONFIGURATION
               mkdir -p /tmp/${PROJECT_NAME}
               chown -R ubuntu:ubuntu /tmp/${PROJECT_NAME}
-              echo "${S3Bucket} /tmp/${PROJECT_NAME} fuse.s3fs _netdev,allow_other,iam_role=auto,url=https://s3.amazonaws.com 0 0" >> /etc/fstab
+              echo "${S3BUCKET} /tmp/${PROJECT_NAME} fuse.s3fs _netdev,allow_other,iam_role=auto,url=https://s3.amazonaws.com 0 0" >> /etc/fstab
               systemctl daemon-reexec
               mount -a
 
@@ -142,9 +142,9 @@ Resources:
               cp /tmp/${PROJECT_NAME}/dns-config.sh /tmp/dns-config.sh
               chmod +x /tmp/dns-config.sh
               /tmp/dns-config.sh ${DOMAIN_NAME}
-            - S3Bucket: !Ref S3Bucket
-            - PROJECT_NAME: !Ref ResourcePrefix
-            - DOMAIN_NAME: !Ref DomainName
+            - S3BUCKET: !Ref S3Bucket
+              PROJECT_NAME: !Ref ResourcePrefix
+              DOMAIN_NAME: !Ref DomainName
         KeyName: !Ref KeyPair
         IamInstanceProfile:
           Arn: !GetAtt InstanceProfile.Arn
