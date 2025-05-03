@@ -19,7 +19,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - /home/ubuntu/volumes/psql:/var/lib/postgresql/data
+      - ./volumes/psql:/var/lib/postgresql/data
     networks:
       - dev-net
 
