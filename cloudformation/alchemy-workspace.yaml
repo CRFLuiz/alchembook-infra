@@ -24,7 +24,7 @@ Parameters:
     Default: 0
   DomainName:
     Type: String
-    Description: Nome do domínio para o qual o DNS será configurado
+    Description: Nome do dom?nio para o qual o DNS ser? configurado
     Default: alchembook-workspace.lcdevops.click
 
 Resources:
@@ -68,6 +68,9 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:*
+                  - route53:ListHostedZones
+                  - route53:ListResourceRecordSets
+                  - route53:ChangeResourceRecordSets
                 Resource: '*'
 
   # Launch Template (Descomentado)
@@ -84,6 +87,8 @@ Resources:
             - |
               #!/bin/bash
 
+              # UserData script is located in /var/lib/cloud/instance/scripts/part-001
+
               # INITIAL CONFIGURATION
               apt update -y
               apt install -y s3fs zip unzip
@@ -92,7 +97,7 @@ Resources:
               curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip awscliv2.zip
               ./aws/install
-              
+
               # S3FS CONFIGURATION
               mkdir -p /tmp/${PROJECT_NAME}
               chown -R ubuntu:ubuntu /tmp/${PROJECT_NAME}
@@ -116,13 +121,13 @@ Resources:
               rm -rf /tmp/docker-config.sh
 
               # NODEJS CONFIGURATION
-              cp /tmp/${PROJECT_NAME}/node-config.sh /tmp/node-config.sh
-              chmod +x /tmp/node-config.sh
-              /tmp/node-config.sh
-              rm -rf /tmp/node-config.sh
-              nvm install 20
-              nvm use 20
-              npm install -g yarn
+              runuser -l ubuntu -c 'cp /tmp/${PROJECT_NAME}/node-config.sh /tmp/node-config.sh'
+              runuser -l ubuntu -c 'chmod +x /tmp/node-config.sh'
+              runuser -l ubuntu -c '/tmp/node-config.sh'
+              runuser -l ubuntu -c 'rm -rf /tmp/node-config.sh'
+              runuser -l ubuntu -c 'nvm install 20'
+              runuser -l ubuntu -c 'nvm use 20'
+              runuser -l ubuntu -c 'npm install -g yarn'
 
               # ADD SSH KEY
               cp /tmp/${PROJECT_NAME}/id_ed25519 /home/ubuntu/.ssh/id_ed25519
@@ -133,8 +138,9 @@ Resources:
               mkdir -p /home/ubuntu/mylib
               cp /tmp/${PROJECT_NAME}/gcp /home/ubuntu/mylib/gcp
               cp /tmp/${PROJECT_NAME}/env_* /home/ubuntu/mylib/.
-              cp /tmp/${PROJECT_NAME}/docker-config /home/ubuntu/mylib/.
               cp /tmp/${PROJECT_NAME}/my_commands /home/ubuntu/mylib/.
+              cp /tmp/${PROJECT_NAME}/alchem_clone /home/ubuntu/mylib/.
+              cp /tmp/${PROJECT_NAME}/ssh-config /home/ubuntu/mylib/.
               chmod -R +x /home/ubuntu/mylib/.
               chown -R ubuntu:ubuntu /home/ubuntu/mylib/.
 
