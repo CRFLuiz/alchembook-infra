@@ -143,8 +143,8 @@ Resources:
               chmod +x /tmp/dns-config.sh
               /tmp/dns-config.sh ${DOMAIN_NAME}
             - S3BUCKET: !Ref S3Bucket
-            - PROJECT_NAME: !Ref ResourcePrefix
-            - DOMAIN_NAME: !Ref DomainName
+              PROJECT_NAME: !Ref ResourcePrefix
+              DOMAIN_NAME: !Ref DomainName
         KeyName: !Ref KeyPair
         IamInstanceProfile:
           Arn: !GetAtt InstanceProfile.Arn
