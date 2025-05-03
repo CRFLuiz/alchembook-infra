@@ -22,6 +22,10 @@ Parameters:
   ASGDesireedCapacity:
     Type: Number
     Default: 0
+  DomainName:
+    Type: String
+    Description: Nome do domínio para o qual o DNS será configurado
+    Default: alchembook-workspace.lcdevops.click
 
 Resources:
   # Bucket S3
@@ -133,8 +137,13 @@ Resources:
               chmod -R +x /home/ubuntu/mylib/.
               chown -R ubuntu:ubuntu /home/ubuntu/mylib/.
 
+              # CONFIGURE DNS TO THE INSTANCE
+              cp /tmp/${PROJECT_NAME}/dns-config.sh /tmp/dns-config.sh
+              chmod +x /tmp/dns-config.sh
+              /tmp/dns-config.sh ${DOMAIN_NAME}
             - S3Bucket: !Ref S3Bucket
             - PROJECT_NAME: !Ref ResourcePrefix
+            - DOMAIN_NAME: !Ref DomainName
         KeyName: !Ref KeyPair
         IamInstanceProfile:
           Arn: !GetAtt InstanceProfile.Arn
