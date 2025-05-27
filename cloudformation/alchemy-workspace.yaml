@@ -24,7 +24,7 @@ Parameters:
     Default: 0
   DomainName:
     Type: String
-    Description: Nome do dom?nio para o qual o DNS ser? configurado
+    Description: Nome do dominio para o qual o DNS sera configurado
     Default: alchembook-workspace.lcdevops.click
 
 Resources:
@@ -34,7 +34,7 @@ Resources:
     Properties:
       BucketName: !Sub ${ResourcePrefix}-bucket
 
-  # IAM Role para inst?ncias
+  # IAM Role para instancias
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -81,7 +81,7 @@ Resources:
       VersionDescription: v1
       LaunchTemplateData:
         InstanceType: t3a.medium
-        ImageId: ami-075686beab831bb7f # Exemplo de AMI p?blica (Ubuntu)
+        ImageId: ami-075686beab831bb7f # Exemplo de AMI publica (Ubuntu)
         UserData: !Base64
           Fn::Sub:
             - |
@@ -141,6 +141,7 @@ Resources:
               cp /tmp/${PROJECT_NAME}/my_commands /home/ubuntu/mylib/.
               cp /tmp/${PROJECT_NAME}/alchem_clone /home/ubuntu/mylib/.
               cp /tmp/${PROJECT_NAME}/ssh-config /home/ubuntu/mylib/.
+              cp /tmp/${PROJECT_NAME}/docker_config /home/ubuntu/mylib/.
               chmod -R +x /home/ubuntu/mylib/.
               chown -R ubuntu:ubuntu /home/ubuntu/mylib/.
 
@@ -171,7 +172,7 @@ Resources:
         LaunchTemplate:
           LaunchTemplateSpecification:
             LaunchTemplateId: !Ref LaunchTemplate
-            Version: !GetAtt LaunchTemplate.LatestVersionNumber # Refer?ncia para a vers?o mais recente do LaunchTemplate
+            Version: !GetAtt LaunchTemplate.LatestVersionNumber # Referência para a versao mais recente do LaunchTemplate
 
 Outputs:
   S3BucketName:

@@ -35,6 +35,23 @@ services:
       - postgres
     networks:
       - dev-net
+  
+  backend:
+    build:
+      context: /home/ubuntu/alchembook-backend
+      dockerfile: /home/ubuntu/alchembook-infra/docker/node.Dockerfile
+    container_name: alchembook-backend
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/mydb
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - dev-net
 
 networks:
   dev-net:
