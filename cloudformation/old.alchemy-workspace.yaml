@@ -24,7 +24,7 @@ Parameters:
     Default: 0
   DomainName:
     Type: String
-    Description: Nome do dominio para o qual o DNS sera configurado
+    Description: Nome do dom?nio para o qual o DNS ser? configurado
     Default: alchembook-workspace.lcdevops.click
 
 Resources:
@@ -34,7 +34,7 @@ Resources:
     Properties:
       BucketName: !Sub ${ResourcePrefix}-bucket
 
-  # IAM Role para instancias
+  # IAM Role para inst?ncias
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -81,7 +81,7 @@ Resources:
       VersionDescription: v1
       LaunchTemplateData:
         InstanceType: t3a.medium
-        ImageId: ami-075686beab831bb7f # Exemplo de AMI publica (Ubuntu)
+        ImageId: ami-075686beab831bb7f # Exemplo de AMI p?blica (Ubuntu)
         UserData: !Base64
           Fn::Sub:
             - |
@@ -101,7 +101,7 @@ Resources:
               # S3FS CONFIGURATION
               mkdir -p /tmp/${PROJECT_NAME}
               chown -R ubuntu:ubuntu /tmp/${PROJECT_NAME}
-              echo "${S3Bucket} /tmp/${PROJECT_NAME} fuse.s3fs _netdev,allow_other,iam_role=auto,url=https://s3.amazonaws.com 0 0" >> /etc/fstab
+              echo "${S3BUCKET} /tmp/${PROJECT_NAME} fuse.s3fs _netdev,allow_other,iam_role=auto,url=https://s3.amazonaws.com 0 0" >> /etc/fstab
               systemctl daemon-reexec
               mount -a
 
@@ -141,7 +141,6 @@ Resources:
               cp /tmp/${PROJECT_NAME}/my_commands /home/ubuntu/mylib/.
               cp /tmp/${PROJECT_NAME}/alchem_clone /home/ubuntu/mylib/.
               cp /tmp/${PROJECT_NAME}/ssh-config /home/ubuntu/mylib/.
-              cp /tmp/${PROJECT_NAME}/docker_config /home/ubuntu/mylib/.
               chmod -R +x /home/ubuntu/mylib/.
               chown -R ubuntu:ubuntu /home/ubuntu/mylib/.
 
@@ -172,7 +171,7 @@ Resources:
         LaunchTemplate:
           LaunchTemplateSpecification:
             LaunchTemplateId: !Ref LaunchTemplate
-            Version: !GetAtt LaunchTemplate.LatestVersionNumber # Referência para a versao mais recente do LaunchTemplate
+            Version: !GetAtt LaunchTemplate.LatestVersionNumber # Refer?ncia para a vers?o mais recente do LaunchTemplate
 
 Outputs:
   S3BucketName:
